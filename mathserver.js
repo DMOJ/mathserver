@@ -22,13 +22,21 @@ var argv = require('yargs')
       default: 'TeX',
       describe: 'web font to use'
     },
-    inline_path: {
-      default: '/math',
-      describe: 'web font to use'
+    inline_svg: {
+      default: '/math.svg',
+      describe: 'inline math svg path'
     },
-    display_path: {
+    display_svg: {
+      default: '/display_math.svg',
+      describe: 'display math svg path'
+    },
+    inline_png: {
+      default: '/math.png',
+      describe: 'inline math png path'
+    },
+    display_png: {
       default: '/display_math',
-      describe: 'web font to use'
+      describe: 'display math png path'
     },
     cache: {
       default: 'cache',
@@ -53,14 +61,29 @@ if (!argv.no_optimize) {
 
 var cache_dir = argv.cache;
 var urlmap = {};
-urlmap[argv.inline_path] = {
+urlmap[argv.inline_svg] = {
   format: 'inline-TeX', cache: 'inline', type: 'svg',
   content_type: 'image/svg+xml; charset=utf-8'
 };
-urlmap[argv.display_path] = {
+urlmap[argv.display_svg] = {
   format: 'TeX', cache: 'display', type: 'svg',
   content_type: 'image/svg+xml; charset=utf-8',
 };
+
+try {
+  var rsvg = require('rsvg');
+  urlmap[argv.inline_png] = {
+    format: 'inline-TeX', cache: 'inline', type: 'png',
+    content_type: 'image/png'
+  };
+  urlmap[argv.display_png] = {
+    format: 'TeX', cache: 'display', type: 'png',
+    content_type: 'image/png',
+  };
+} catch (e) {
+  var rsvg = undefined;
+  console.log("Can't rasterize without rsvg")
+}
 
 function save(file, data) {
   var temp = file + '.tmp';
