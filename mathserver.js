@@ -7,6 +7,10 @@ var unescape = require('querystring').unescape;
 var argv = require('yargs')
   .demand(1).strict()
   .usage('Usage: mathserver [options] <port>', {
+    host: {
+      default: '127.0.0.1',
+      describe: 'address to listen on'
+    },
     font: {
       default: 'TeX',
       describe: 'web font to use'
@@ -55,4 +59,4 @@ require('http').createServer(function (req, res) {
       res.end(data.svg);
     }
   });
-}).listen(parseInt(argv._[0]));
+}).listen(parseInt(argv._[0]), argv.host);
