@@ -35,7 +35,7 @@ var argv = require('yargs')
       describe: 'inline math png path'
     },
     display_png: {
-      default: '/display_math',
+      default: '/display_math.png',
       describe: 'display math png path'
     },
     cache: {
@@ -71,7 +71,7 @@ urlmap[argv.display_svg] = {
 };
 
 try {
-  var rsvg = require('rsvg');
+  var rsvg = require('rsvg').Rsvg;
   urlmap[argv.inline_png] = {
     format: 'inline-TeX', cache: 'inline', type: 'png',
     content_type: 'image/png'
@@ -92,6 +92,13 @@ function save(file, data) {
     fs.rename(temp, file, function (err) {
       if (err) console.log(err);
     });
+  });
+}
+
+function render_png(data) {
+  var svg = new rsvg(data);
+  return svg.render({
+    format: 'png', width: svg.width * 1.5, height: svg.height * 1.5
   });
 }
 
@@ -130,17 +137,22 @@ require('http').createServer(function (req, res) {
         res.writeHead(400, {'Content-Type': 'text/plain'});
         res.end(data.errors);
       } else {
+        res.writeHead(200, {'Content-Type': config.content_type});
         if (typeof svgo !== 'undefined') {
           svgo.optimize(data.svg, function (result) {
-            res.writeHead(200, {'Content-Type': config.content_type});
-            res.end(result.data);
+            if (config.type == 'svg')
+              res.end(result.data);
             save(prefix + '.svg', result.data);
           });
         } else {
-          res.writeHead(200, {'Content-Type': config.content_type});
-          res.end(data.svg);
+          if (config.type == 'svg')
+            res.end(data.svg);
           save(prefix + '.svg', data.svg);
         }
+        var png = render_png(data.svg);
+        if (config.type == 'png')
+          res.end(png.data);
+        save(prefix + '.png', png.data);
       }
     });
   });
