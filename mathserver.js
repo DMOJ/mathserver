@@ -11,6 +11,10 @@ var argv = require('yargs')
       default: '127.0.0.1',
       describe: 'address to listen on'
     },
+    no_optimize: {
+      boolean: true,
+      describe: 'disable optimization of svg'
+    },
     font: {
       default: 'TeX',
       describe: 'web font to use'
@@ -28,6 +32,17 @@ var argv = require('yargs')
 
 mjAPI.config({MathJax: {SVG: {font: argv.font === 'STIX' ? 'STIX-Web' : argv.font}}});
 mjAPI.start();
+
+if (!argv.no_optimize) {
+  try {
+    var SVGO = require('svgo');
+    var svgo = new SVGO();
+  } catch (e) {
+    var svgo = undefined;
+    console.log("Can't find svgo, can't optimize svgs");
+  }
+} else
+  var svgo = undefined;
 
 var urlmap = {};
 urlmap[argv.inline_path] = {
@@ -56,7 +71,11 @@ require('http').createServer(function (req, res) {
       res.end(data.errors);
     } else {
       res.writeHead(200, {'Content-Type': 'image/svg+xml; charset=utf-8'});
-      res.end(data.svg);
+      if (typeof svgo !== 'undefined') {
+        svgo.optimize(data.svg, function (result) {
+          res.end(result.data);
+        });
+      } else res.end(data.svg);
     }
   });
 }).listen(parseInt(argv._[0]), argv.host);
