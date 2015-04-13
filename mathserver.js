@@ -41,6 +41,10 @@ var argv = require('yargs')
     cache: {
       default: 'cache',
       describe: 'cache directory'
+    },
+    nginx: {
+      default: null,
+      describe: 'nginx X-Accel-Redirect internal location for cache directory'
     }
   })
   .argv;
@@ -60,6 +64,7 @@ if (!argv.no_optimize) {
   var svgo = undefined;
 
 var cache_dir = argv.cache;
+var x_accel = argv.nginx;
 var urlmap = {};
 urlmap[argv.inline_svg] = {
   format: 'inline-TeX', cache: 'inline', type: 'svg',
@@ -113,20 +118,29 @@ require('http').createServer(function (req, res) {
   var config = urlmap[pathname];
   var math = unescape(req.url.substr(query+1));
   var hash = crypto.createHash('md5').update(math).digest('hex');
+  var key = config.cache + '_' + hash;
   var prefix = path.join(cache_dir, config.cache + '_' + hash);
   var cache = prefix + '.' + config.type;
   fs.exists(cache, function (exists) {
     if (exists) {
-      fs.readFile(cache, function (err, data) {
-        if (err) {
-          console.log(err);
-          res.writeHead(500, {'Content-Type': 'text/plain'});
-          res.end(err);
-        } else {
-          res.writeHead(200, {'Content-Type': config.content_type});
-          res.end(data);
-        }
-      });
+      if (x_accel === null) {
+        fs.readFile(cache, function (err, data) {
+          if (err) {
+            console.log(err);
+            res.writeHead(500, {'Content-Type': 'text/plain'});
+            res.end(err);
+          } else {
+            res.writeHead(200, {'Content-Type': config.content_type});
+            res.end(data);
+          }
+        });
+      } else {
+        res.writeHead(200, {
+          'Content-Type': config.content_type,
+          'X-Accel-Redirect': x_accel + key + '.' + config.type
+        });
+        res.end();
+      }
       return;
     }
     mjAPI.typeset({
