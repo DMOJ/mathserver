@@ -103,14 +103,15 @@ function render_png(data) {
 }
 
 require('http').createServer(function (req, res) {
-  var params = url.parse(req.url);
-  if (!(params.pathname in urlmap)) {
+  var pathname = url.parse(req.url).pathname;
+  var query = req.url.indexOf('?');
+  if (!(pathname in urlmap) || query === -1) {
     res.writeHead(404, {'Content-Type': 'text/plain'});
     res.end('404 Not Found');
     return;
   }
-  var config = urlmap[params.pathname];
-  var math = unescape(params.query);
+  var config = urlmap[pathname];
+  var math = unescape(req.url.substr(query+1));
   var hash = crypto.createHash('md5').update(math).digest('hex');
   var prefix = path.join(cache_dir, config.cache + '_' + hash);
   var cache = prefix + '.' + config.type;
