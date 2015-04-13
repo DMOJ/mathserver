@@ -54,10 +54,12 @@ if (!argv.no_optimize) {
 var cache_dir = argv.cache;
 var urlmap = {};
 urlmap[argv.inline_path] = {
-  format: 'inline-TeX', cache: 'svgi', content_type: 'image/svg+xml; charset=utf-8'
+  format: 'inline-TeX', cache: 'inline', type: 'svg',
+  content_type: 'image/svg+xml; charset=utf-8'
 };
 urlmap[argv.display_path] = {
-  format: 'TeX', cache: 'svgd', content_type: 'image/svg+xml; charset=utf-8'
+  format: 'TeX', cache: 'display', type: 'svg',
+  content_type: 'image/svg+xml; charset=utf-8',
 };
 
 function save(file, data) {
@@ -80,7 +82,8 @@ require('http').createServer(function (req, res) {
   var config = urlmap[params.pathname];
   var math = unescape(params.query);
   var hash = crypto.createHash('md5').update(math).digest('hex');
-  var cache = path.join(cache_dir, config.cache + '_' + hash);
+  var prefix = path.join(cache_dir, config.cache + '_' + hash);
+  var cache = prefix + '.' + config.type;
   fs.exists(cache, function (exists) {
     if (exists) {
       fs.readFile(cache, function (err, data) {
@@ -108,12 +111,12 @@ require('http').createServer(function (req, res) {
           svgo.optimize(data.svg, function (result) {
             res.writeHead(200, {'Content-Type': config.content_type});
             res.end(result.data);
-            save(cache, result.data);
+            save(prefix + '.svg', result.data);
           });
         } else {
           res.writeHead(200, {'Content-Type': config.content_type});
           res.end(data.svg);
-          save(cache, data.svg);
+          save(prefix + '.svg', data.svg);
         }
       }
     });
