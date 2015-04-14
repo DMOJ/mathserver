@@ -128,7 +128,7 @@ require('http').createServer(function (req, res) {
           if (err) {
             console.log(err);
             res.writeHead(500, {'Content-Type': 'text/plain'});
-            res.end(err);
+            res.end(err.toString());
           } else {
             res.writeHead(200, {'Content-Type': config.content_type});
             res.end(data);
@@ -150,7 +150,7 @@ require('http').createServer(function (req, res) {
     }, function (data) {
       if (data.errors) {
         res.writeHead(400, {'Content-Type': 'text/plain'});
-        res.end(data.errors);
+        res.end(data.errors.toString());
       } else {
         res.writeHead(200, {'Content-Type': config.content_type});
         if (typeof svgo !== 'undefined') {
