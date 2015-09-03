@@ -1,0 +1,21 @@
+{
+  "name": "mathserver",
+  "version": "1.0.0",
+  "description": " A fast and scalable node.js server to render math as SVG, PNG, and more",
+  "main": "mathserver.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DMOJ/mathserver"
+  },
+  "author": "Don Mills Online Judge",
+  "license": "AGPLv3",
+  "bugs": {
+    "url": "https://github.com/DMOJ/mathserver/issues"
+  },
+  "homepage": "https://github.com/DMOJ/mathserver",
+  "dependencies": {
+    "MathJax-node": "^0.3.0",
+    "svgo": "^0.5.1",
+    "yargs": "^3.8.0"
+  }
+}
