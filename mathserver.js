@@ -76,7 +76,7 @@ urlmap[argv.display_svg] = {
 };
 
 try {
-  var rsvg = require('rsvg').Rsvg;
+  var svg2png = require('svg2png');
   urlmap[argv.inline_png] = {
     format: 'inline-TeX', cache: 'inline', type: 'png',
     content_type: 'image/png'
@@ -86,8 +86,8 @@ try {
     content_type: 'image/png',
   };
 } catch (e) {
-  var rsvg = undefined;
-  console.log("Can't rasterize without rsvg")
+  var svg2png = undefined;
+  console.log("Can't rasterize without svg2png")
 }
 
 function save(file, data) {
@@ -100,11 +100,8 @@ function save(file, data) {
   });
 }
 
-function render_png(data) {
-  var svg = new rsvg(data);
-  return svg.render({
-    format: 'png', width: svg.width * 1.5, height: svg.height * 1.5
-  });
+function render_png(data, callback) {
+  svg2png(data, {width: svg.width * 1.5, height: svg.height * 1.5}).then(callback);
 }
 
 require('http').createServer(function (req, res) {
@@ -164,10 +161,11 @@ require('http').createServer(function (req, res) {
             res.end(data.svg);
           save(prefix + '.svg', data.svg);
         }
-        var png = render_png(data.svg);
-        if (config.type == 'png')
-          res.end(png.data);
-        save(prefix + '.png', png.data);
+        render_png(data.svg, function (buffer) {
+          if (config.type == 'png')
+            res.end(buffer);
+          save(prefix + '.png', buffer);
+        });
       }
     });
   });
