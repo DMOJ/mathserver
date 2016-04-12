@@ -101,7 +101,7 @@ function save(file, data) {
 }
 
 function render_png(data, callback) {
-  svg2png(data, {width: svg.width * 1.5, height: svg.height * 1.5}).then(callback);
+  svg2png(data).then(callback);
 }
 
 require('http').createServer(function (req, res) {
