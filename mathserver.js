@@ -101,7 +101,10 @@ function save(file, data) {
 }
 
 function render_png(data, callback) {
-  svg2png(data).then(callback);
+  svg2png(new Buffer(data), {
+    width: /width="([\d.]+)ex"/.exec(data)[1] * 9,
+    height: /height="([\d.]+)ex"/.exec(data)[1] * 9,
+  }).then(callback).catch(e => console.error(e));
 }
 
 require('http').createServer(function (req, res) {
