@@ -100,11 +100,11 @@ function save(file, data) {
   });
 }
 
-function render_png(data, callback) {
+function render_png(data, callback, error) {
   svg2png(new Buffer(data), {
     width: /width="([\d.]+)ex"/.exec(data)[1] * 9,
     height: /height="([\d.]+)ex"/.exec(data)[1] * 9,
-  }).then(callback).catch(e => console.error(e));
+  }).then(callback).catch(error);
 }
 
 require('http').createServer(function (req, res) {
@@ -168,6 +168,10 @@ require('http').createServer(function (req, res) {
           if (config.type == 'png')
             res.end(buffer);
           save(prefix + '.png', buffer);
+        }, function (e) {
+          if (config.type == 'png')
+            res.end(buffer);
+          console.err(e);
         });
       }
     });
